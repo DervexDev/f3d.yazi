@@ -7,6 +7,8 @@ from meshes and CAD files to point clouds, Gaussian splats and volumes. See [Usa
 - Renders a thumbnail of the model into Yazi's preview cache, so it is only rendered once.
 - Orbit the camera around the model with Yazi's preview-scroll keys (<kbd>J</kbd>/<kbd>K</kbd> by default),
   and zoom in and out. See [Keybindings](#keybindings).
+- Shows model statistics (vertices, triangles, meshes, materials, size, …) under the preview and in Yazi's file
+  info popup (<kbd>Tab</kbd>).
 - Works as a preloader too, so the image can be rendered before you hover the file.
 
 ## Requirements
@@ -22,6 +24,10 @@ from meshes and CAD files to point clouds, Gaussian splats and volumes. See [Usa
   ```
 
 - An image-capable terminal, as for any other Yazi image preview.
+- Optional: the [Assimp](https://github.com/assimp/assimp) command-line tool (`assimp`), for model statistics. It's
+  packaged as `assimp-utils` on Debian/Ubuntu and `assimp` on Arch, Homebrew and most other distros. Statistics are
+  available for the mesh formats Assimp reads (FBX, glTF, OBJ, STL, PLY, Collada, 3DS, 3MF, …), not for CAD files,
+  point clouds, splats or volumes.
 
 ## Installation
 
@@ -55,6 +61,19 @@ prepend_preloaders = [
 ]
 
 prepend_previewers = [
+    # Meshes and scenes
+    { url = "*.{3ds,3mf,abc,amf,dae,drc,dxf,fbx,glb,gltf,mdl,obj,off,ply,stl,usd,usda,usdc,usdz,vrml,wrl,x}", run = "f3d" },
+    # CAD and BIM
+    { url = "*.{brep,fcstd,ifc,iges,igs,p21,step,stp,stpnc,xbf}", run = "f3d" },
+    # Point clouds and GIS
+    { url = "*.{bpf,csd,gml,las,laz,pcd,pts,ptx,qi,sbet,slpk}", run = "f3d" },
+    # Gaussian splats
+    { url = "*.{splat,spz}", run = "f3d" },
+    # Scientific and volumetric data
+    { url = "*.{cdf,dcm,ex2,exo,mha,mhd,nc,ncdf,nhdr,nrrd,vdb,vti,vtk,vtkhdf,vtm,vtp,vtr,vts,vtu}", run = "f3d" },
+]
+
+prepend_spotters = [
     # Meshes and scenes
     { url = "*.{3ds,3mf,abc,amf,dae,drc,dxf,fbx,glb,gltf,mdl,obj,off,ply,stl,usd,usda,usdc,usdz,vrml,wrl,x}", run = "f3d" },
     # CAD and BIM
@@ -123,8 +142,9 @@ replace its keybindings with these.
 
 ### Options
 
-Options are passed as arguments in `run`, e.g. `run = "f3d --step=30 --elevation=30 --transparent"`.
-Use the same arguments for the preloader and the previewer, otherwise they produce different images.
+Options are passed as arguments in `run`, e.g. `run = "f3d --step=30 --elevation=30 --transparent=false"`.
+Use the same arguments for the preloader and the previewer, otherwise they produce different images. The spotter
+doesn't take any options.
 
 | Option          | Default  | Description                                                                         |
 | --------------- | -------- | ----------------------------------------------------------------------------------- |
@@ -132,13 +152,27 @@ Use the same arguments for the preloader and the previewer, otherwise they produ
 | `--elevation=N` | `19.47`  | Camera angle above the horizon, in degrees. The default matches f3d's default view. |
 | `--up=X`        | `+Y`     | World up axis: `+Y`, `-Y`, `+Z`, … (`f3d --up`). The camera orbits around it.       |
 | `--step=N`      | `45`     | Degrees the camera orbits per scroll. `0` disables orbiting.                        |
-| `--transparent` | off      | Render without a background (`f3d --no-background`).                                |
+| `--transparent` | on       | Render without a background (`f3d --no-background`). `--transparent=false` disables it. |
+| `--stats`       | on       | Show model statistics under the preview. `--stats=false` disables it.               |
+| `--config=X`    | bundled  | f3d config file to use: a path, or a name looked up in f3d's config directories. See [Appearance](#appearance). |
 | `--plugins=X`   | `assimp` | f3d plugins to load (`--load-plugins`). Comma separated.                            |
 | `--backend=X`   | f3d auto | f3d rendering backend, e.g. `egl` or `osmesa` (f3d 3.x only). See [Headless](#headless). |
 
-The camera position is set by these options. Anything else (colors, lighting, HDRI, grid, tone mapping, …) is read
-from your regular [f3d configuration file](https://github.com/f3d-app/f3d/blob/master/doc/user/06-CONFIGURATION_FILE.md),
-so the preview looks the same as when you open the model in f3d. The output resolution follows Yazi's `max_width`/`max_height`.
+The output resolution follows Yazi's `max_width`/`max_height`.
+
+### Appearance
+
+Previews use the plugin's own f3d config, [`f3d.json`](f3d.json), instead of your regular f3d config, so overlays
+meant for the f3d window (file name, axes, progress bars, …) stay out of the preview. It enables a ground grid,
+ambient HDRI lighting, tone mapping and anti-aliasing.
+
+To customize it, copy `f3d.json` to f3d's config directory (`~/.config/f3d/` on Linux,
+`~/Library/Application Support/f3d/` on macOS, `%APPDATA%\f3d\` on Windows) under a new name, e.g. `yazi.json`, edit it with any
+[f3d option](https://github.com/f3d-app/f3d/blob/master/doc/user/03-OPTIONS.md), and point the plugin at it with
+`run = "f3d --config=yazi"`. The camera position is always set by the plugin, so camera options in the file are
+ignored.
+
+The config file uses the f3d 3.x format, so f3d 2.x ignores it and renders with its defaults.
 
 ### Headless
 

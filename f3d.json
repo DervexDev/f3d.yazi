@@ -1,0 +1,11 @@
+[
+  {
+    "options": {
+      "anti-aliasing": "fxaa",
+      "blending": "ddp",
+      "grid": true,
+      "hdri-ambient": true,
+      "tone-mapping": true
+    }
+  }
+]
