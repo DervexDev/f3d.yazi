@@ -1,21 +1,24 @@
 # f3d.yazi
 
-A [Yazi](https://github.com/sxyazi/yazi) previewer for FBX models (and any other 3D format your
-[f3d](https://f3d.app) build supports), rendered with `f3d`.
+A [Yazi](https://github.com/sxyazi/yazi) previewer for 3D models, rendered with [f3d](https://f3d.app). It handles
+glTF/GLB, FBX, OBJ, STL, PLY, USD, 3MF, Collada, STEP/IGES and every other 3D format your f3d build can open,
+from meshes and CAD files to point clouds, Gaussian splats and volumes. See [Usage](#usage) for the full list.
 
 - Renders a thumbnail of the model into Yazi's preview cache, so it is only rendered once.
-- Scroll the preview (<kbd>J</kbd>/<kbd>K</kbd> by default) to orbit the camera around the model.
+- Orbit the camera around the model with Yazi's preview-scroll keys, <kbd>Shift</kbd>+<kbd>J</kbd> and
+  <kbd>Shift</kbd>+<kbd>K</kbd> by default. See [Keybindings](#keybindings).
 - Works as a preloader too, so the image can be rendered before you hover the file.
 
 ## Requirements
 
 - Yazi `25.12.29` or newer
-- [f3d](https://github.com/f3d-app/f3d) with the Assimp plugin (needed for FBX).
-  Most distro packages and the official release binaries include it. Check with:
+- [f3d](https://github.com/f3d-app/f3d), with the plugins for the formats you want to preview. Formats like FBX,
+  Collada and 3MF need the `assimp` plugin, and STEP/IGES need `occt`. Most distro packages and the official
+  release binaries include both. List the formats your build can open with:
 
   ```sh
-  f3d --load-plugins=assimp --list-readers | grep -i fbx   # f3d 3.x
-  f3d --load-plugins=assimp --readers-list | grep -i fbx   # f3d 2.x
+  f3d --list-readers   # f3d 3.x
+  f3d --load-plugins=assimp,occt --readers-list   # f3d 2.x
   ```
 
 - An image-capable terminal, as for any other Yazi image preview.
@@ -71,13 +74,36 @@ This covers every 3D format [f3d supports](https://github.com/f3d-app/f3d/blob/m
 - Extensions too generic to claim for every file that has them: ExodusII's `e`/`g`, TerraScan's `bin` and STEP's `210`.
   Add them yourself if you need them.
 
-Patterns are case-insensitive, so `*.fbx` also matches `.FBX`. Each format needs the matching f3d plugin, and the
+Patterns are case-insensitive, so `*.stl` also matches `.STL`. Each format needs the matching f3d plugin, and the
 selection depends on your f3d build and version. Check what yours supports with `f3d --list-readers`
 (`--readers-list` on f3d 2.x), and trim the list to those formats so unsupported files fall back to Yazi's
 default previewers.
 
 f3d 3.x loads all of its plugins automatically. On f3d 2.x, only `assimp` is loaded unless you list more, e.g.
 `run = "f3d --plugins=assimp,occt,alembic"`.
+
+### Keybindings
+
+No keymap changes are needed. The plugin uses Yazi's built-in `seek` action, which scrolls the preview. Each
+press orbits the camera by one step (`--step`, 45° by default) and wraps around after a full turn:
+
+| Key                              | Action                       |
+| -------------------------------- | ---------------------------- |
+| <kbd>Shift</kbd>+<kbd>J</kbd>    | Orbit forward (`seek 5`)     |
+| <kbd>Shift</kbd>+<kbd>K</kbd>    | Orbit backward (`seek -5`)   |
+
+Plain <kbd>j</kbd>/<kbd>k</kbd> move the file cursor, not the preview. To orbit with other keys, bind them to
+`seek` in `~/.config/yazi/keymap.toml`. Only the direction matters, not the number:
+
+```toml
+[mgr]
+prepend_keymap = [
+    { on = "<A-l>", run = "seek 1",  desc = "Orbit the 3D preview forward" },
+    { on = "<A-h>", run = "seek -1", desc = "Orbit the 3D preview backward" },
+]
+```
+
+Those keys then scroll other previews too (text, PDFs, videos), the same as <kbd>J</kbd>/<kbd>K</kbd>.
 
 ### Options
 
