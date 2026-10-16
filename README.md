@@ -142,7 +142,7 @@ replace its keybindings with these.
 
 ### Options
 
-Options are passed as arguments in `run`, e.g. `run = "f3d --step=30 --elevation=30 --transparent=false"`.
+Options are passed as arguments in `run`, e.g. `run = "f3d --step=30 --elevation=30"`.
 Use the same arguments for the preloader and the previewer, otherwise they produce different images. The spotter
 doesn't take any options.
 
@@ -152,7 +152,6 @@ doesn't take any options.
 | `--elevation=N` | `19.47`  | Camera angle above the horizon, in degrees. The default matches f3d's default view. |
 | `--up=X`        | `+Y`     | World up axis: `+Y`, `-Y`, `+Z`, … (`f3d --up`). The camera orbits around it.       |
 | `--step=N`      | `45`     | Degrees the camera orbits per scroll. `0` disables orbiting.                        |
-| `--transparent` | on       | Render without a background (`f3d --no-background`). `--transparent=false` disables it. |
 | `--stats`       | on       | Show model statistics under the preview. `--stats=false` disables it.               |
 | `--config=X`    | bundled  | f3d config file to use: a path, or a name looked up in f3d's config directories. See [Appearance](#appearance). |
 | `--plugins=X`   | `assimp` | f3d plugins to load (`--load-plugins`). Comma separated.                            |
@@ -162,15 +161,21 @@ The output resolution follows Yazi's `max_width`/`max_height`.
 
 ### Appearance
 
-Previews use the plugin's own f3d config, [`f3d.json`](f3d.json), instead of your regular f3d config, so overlays
-meant for the f3d window (file name, axes, progress bars, …) stay out of the preview. It enables a ground grid,
-ambient HDRI lighting, tone mapping and anti-aliasing.
+All visual settings live in the plugin's own f3d config, [`f3d.json`](f3d.json), which previews use instead of your
+regular f3d config. That keeps overlays meant for the f3d window (file name, progress bars, …) out of the preview.
+By default it renders on a transparent background with ambient HDRI lighting, tone mapping and anti-aliasing. The
+axes widget (`axis`), ground grid (`grid`) and skeleton display (`armature`) are listed too, turned off, so they're
+easy to switch on.
 
 To customize it, copy `f3d.json` to f3d's config directory (`~/.config/f3d/` on Linux,
-`~/Library/Application Support/f3d/` on macOS, `%APPDATA%\f3d\` on Windows) under a new name, e.g. `yazi.json`, edit it with any
-[f3d option](https://github.com/f3d-app/f3d/blob/master/doc/user/03-OPTIONS.md), and point the plugin at it with
-`run = "f3d --config=yazi"`. The camera position is always set by the plugin, so camera options in the file are
-ignored.
+`~/Library/Application Support/f3d/` on macOS, `%APPDATA%\f3d\` on Windows) under a new name, e.g. `yazi.json`, edit
+it with any [f3d option](https://github.com/f3d-app/f3d/blob/master/doc/user/03-OPTIONS.md), and point the plugin at
+it with `run = "f3d --config=yazi"`. The camera position is always set by the plugin, so camera options in the file
+are ignored.
+
+> [!NOTE]
+> Rendered images are cached by file and camera position, so changes to the config or to the plugin options don't
+> apply to models you've already previewed. Clear Yazi's cache with `yazi --clear-cache` after changing them.
 
 The config file uses the f3d 3.x format, so f3d 2.x ignores it and renders with its defaults.
 
@@ -186,11 +191,6 @@ f3d build supports them (`f3d --list-rendering-backends`).
   limit, because OpenGL drivers reserve far more address space than they use and fail to start under one.
 - f3d 2.x renders an empty scene (and exits successfully) for files it can't parse, so a broken model shows
   up as a blank background instead of an error.
-
-## Clearing the cache
-
-Rendered images are cached by file and camera position. After changing options, clear Yazi's cache with
-`yazi --clear-cache`.
 
 ## License
 

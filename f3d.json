@@ -2,9 +2,12 @@
   {
     "options": {
       "anti-aliasing": "fxaa",
+      "armature": false,
+      "axis": false,
       "blending": "ddp",
-      "grid": true,
+      "grid": false,
       "hdri-ambient": true,
+      "no-background": true,
       "tone-mapping": true
     }
   }

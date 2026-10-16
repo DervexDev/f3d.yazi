@@ -308,9 +308,6 @@ function M:preload(job)
 	if job.args.up then
 		cmd:arg("--up=" .. job.args.up)
 	end
-	if flag(job.args.transparent, true) then
-		cmd:arg("--no-background")
-	end
 	if job.args.backend then
 		cmd:arg("--rendering-backend=" .. job.args.backend)
 	end
