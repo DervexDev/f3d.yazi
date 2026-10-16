@@ -101,9 +101,9 @@ default previewers.
 f3d 3.x loads all of its plugins automatically. On f3d 2.x, only `assimp` is loaded unless you list more, e.g.
 `run = "f3d --plugins=assimp,occt,alembic"`.
 
-### Keybindings
+## Keybindings
 
-#### Orbit
+### Orbit
 
 Orbiting uses Yazi's built-in `seek` action, so it works without any keymap changes. Each press orbits the camera
 around the model's vertical axis by one step (`--step`, 45° by default) and wraps around after a full turn:
@@ -124,7 +124,7 @@ prepend_keymap = [
 ]
 ```
 
-#### Zoom
+### Zoom
 
 Zooming needs keybindings, and f3d 3.x. Add to `~/.config/yazi/keymap.toml`:
 
@@ -140,7 +140,7 @@ On any file that isn't previewed by this plugin, the keys run [zoom.yazi](https:
 instead (`plugin zoom 1` / `plugin zoom -1`), so the same keys zoom both images and 3D models. If you use zoom.yazi,
 replace its keybindings with these.
 
-### Options
+## Options
 
 Options are passed as arguments in `run`, e.g. `run = "f3d --step=30 --elevation=30"`.
 Use the same arguments for the preloader and the previewer, otherwise they produce different images. The spotter
@@ -155,11 +155,11 @@ doesn't take any options.
 | `--stats`       | on       | Show model statistics under the preview. `--stats=false` disables it.               |
 | `--config=X`    | bundled  | f3d config file to use: a path, or a name looked up in f3d's config directories. See [Appearance](#appearance). |
 | `--plugins=X`   | `assimp` | f3d plugins to load (`--load-plugins`). Comma separated.                            |
-| `--backend=X`   | f3d auto | f3d rendering backend, e.g. `egl` or `osmesa` (f3d 3.x only). See [Headless](#headless). |
+| `--backend=X`   | f3d auto | f3d rendering backend, e.g. `egl` or `osmesa` (f3d 3.x only). See [Notes](#notes). |
 
 The output resolution follows Yazi's `max_width`/`max_height`.
 
-### Appearance
+## Appearance
 
 All visual settings live in the plugin's own f3d config, [`f3d.json`](f3d.json), which previews use instead of your
 regular f3d config. That keeps overlays meant for the f3d window (file name, progress bars, …) out of the preview.
@@ -173,25 +173,18 @@ it with any [f3d option](https://github.com/f3d-app/f3d/blob/master/doc/user/03-
 it with `run = "f3d --config=yazi"`. The camera position is always set by the plugin, so camera options in the file
 are ignored.
 
-> [!NOTE]
+> [!WARNING]
 > Rendered images are cached by file and camera position, so changes to the config or to the plugin options don't
 > apply to models you've already previewed. Clear Yazi's cache with `yazi --clear-cache` after changing them.
-
-The config file uses the f3d 3.x format, so f3d 2.x ignores it and renders with its defaults.
-
-### Headless
-
-f3d needs an OpenGL context to render. In a normal desktop session it uses your display. Without one
-(for example over SSH), use f3d 3.x with `--backend=egl` (GPU) or `--backend=osmesa` (software), if your
-f3d build supports them (`f3d --list-rendering-backends`).
+>
+> The config file uses the f3d 3.x format, so f3d 2.x ignores it and renders with its defaults.
 
 ## Notes
 
+- f3d needs an OpenGL context to render. In a normal desktop session it uses your display. Without one (for example
+  over SSH), use f3d 3.x with `--backend=egl` (GPU) or `--backend=osmesa` (software), if your f3d build supports them
+  (`f3d --list-rendering-backends`).
 - Yazi's `image_alloc` limit is enforced by watching f3d's resident memory rather than with an address-space
   limit, because OpenGL drivers reserve far more address space than they use and fail to start under one.
 - f3d 2.x renders an empty scene (and exits successfully) for files it can't parse, so a broken model shows
   up as a blank background instead of an error.
-
-## License
-
-MIT
