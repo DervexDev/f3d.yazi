@@ -39,19 +39,45 @@ Add to `~/.config/yazi/yazi.toml`:
 ```toml
 [plugin]
 prepend_preloaders = [
-    { url = "*.{3mf,fbx,obj,pts,ply,stl,step,stp}", run = "f3d" },
+    # Meshes and scenes
+    { url = "*.{3ds,3mf,abc,amf,dae,drc,dxf,fbx,glb,gltf,mdl,obj,off,ply,stl,usd,usda,usdc,usdz,vrml,wrl,x}", run = "f3d" },
+    # CAD and BIM
+    { url = "*.{brep,fcstd,ifc,iges,igs,p21,step,stp,stpnc,xbf}", run = "f3d" },
+    # Point clouds and GIS
+    { url = "*.{bpf,csd,gml,las,laz,pcd,pts,ptx,qi,sbet,slpk}", run = "f3d" },
+    # Gaussian splats
+    { url = "*.{splat,spz}", run = "f3d" },
+    # Scientific and volumetric data
+    { url = "*.{cdf,dcm,ex2,exo,mha,mhd,nc,ncdf,nhdr,nrrd,vdb,vti,vtk,vtkhdf,vtm,vtp,vtr,vts,vtu}", run = "f3d" },
 ]
 
 prepend_previewers = [
-    { url = "*.{3mf,fbx,obj,pts,ply,stl,step,stp}", run = "f3d" },
+    # Meshes and scenes
+    { url = "*.{3ds,3mf,abc,amf,dae,drc,dxf,fbx,glb,gltf,mdl,obj,off,ply,stl,usd,usda,usdc,usdz,vrml,wrl,x}", run = "f3d" },
+    # CAD and BIM
+    { url = "*.{brep,fcstd,ifc,iges,igs,p21,step,stp,stpnc,xbf}", run = "f3d" },
+    # Point clouds and GIS
+    { url = "*.{bpf,csd,gml,las,laz,pcd,pts,ptx,qi,sbet,slpk}", run = "f3d" },
+    # Gaussian splats
+    { url = "*.{splat,spz}", run = "f3d" },
+    # Scientific and volumetric data
+    { url = "*.{cdf,dcm,ex2,exo,mha,mhd,nc,ncdf,nhdr,nrrd,vdb,vti,vtk,vtkhdf,vtm,vtp,vtr,vts,vtu}", run = "f3d" },
 ]
 ```
 
-Patterns are case-insensitive, so this also matches `.FBX`. Add or remove extensions to match the formats your
-f3d build can open.
+This covers every 3D format [f3d supports](https://f3d.app/docs/next/user/SUPPORTED_FORMATS.html), except:
 
-STEP files (`.step`, `.stp`) need f3d's `occt` plugin. f3d 3.x loads it automatically; on f3d 2.x, use
-`run = "f3d --plugins=assimp,occt"`.
+- 2D images (`png`, `jpg`, `exr`, `hdr`, `tif`, …), which Yazi already previews.
+- Extensions too generic to claim for every file that has them: ExodusII's `e`/`g`, TerraScan's `bin` and STEP's `210`.
+  Add them yourself if you need them.
+
+Patterns are case-insensitive, so `*.fbx` also matches `.FBX`. Each format needs the matching f3d plugin, and the
+selection depends on your f3d build and version. Check what yours supports with `f3d --list-readers`
+(`--readers-list` on f3d 2.x), and trim the list to those formats so unsupported files fall back to Yazi's
+default previewers.
+
+f3d 3.x loads all of its plugins automatically. On f3d 2.x, only `assimp` is loaded unless you list more, e.g.
+`run = "f3d --plugins=assimp,occt,alembic"`.
 
 ### Options
 
