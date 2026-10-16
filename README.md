@@ -32,7 +32,7 @@ from meshes and CAD files to point clouds, Gaussian splats and volumes. See [Usa
 ## Installation
 
 ```sh
-ya pkg add DervexDev/f3d.yazi
+ya pkg add DervexDev/f3d
 ```
 
 Or clone it manually:
