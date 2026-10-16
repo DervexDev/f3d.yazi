@@ -10,7 +10,7 @@ A [Yazi](https://github.com/sxyazi/yazi) previewer for FBX models (and any other
 ## Requirements
 
 - Yazi `25.12.29` or newer
-- [f3d](https://f3d.app/docs/next/user/INSTALLATION) with the Assimp plugin (needed for FBX).
+- [f3d](https://github.com/f3d-app/f3d) with the Assimp plugin (needed for FBX).
   Most distro packages and the official release binaries include it. Check with:
 
   ```sh
@@ -65,7 +65,7 @@ prepend_previewers = [
 ]
 ```
 
-This covers every 3D format [f3d supports](https://f3d.app/docs/next/user/SUPPORTED_FORMATS.html), except:
+This covers every 3D format [f3d supports](https://github.com/f3d-app/f3d/blob/master/doc/user/02-SUPPORTED_FORMATS.md), except:
 
 - 2D images (`png`, `jpg`, `exr`, `hdr`, `tif`, …), which Yazi already previews.
 - Extensions too generic to claim for every file that has them: ExodusII's `e`/`g`, TerraScan's `bin` and STEP's `210`.
@@ -94,7 +94,7 @@ Use the same arguments for the preloader and the previewer, otherwise they produ
 | `--backend=X`   | f3d auto | f3d rendering backend, e.g. `egl` or `osmesa` (f3d 3.x only). See [Headless](#headless). |
 
 Anything else (colors, lighting, HDRI, tone mapping, …) is read from your regular
-[f3d configuration file](https://f3d.app/docs/next/user/CONFIGURATION_FILE), so the preview looks the
+[f3d configuration file](https://github.com/f3d-app/f3d/blob/master/doc/user/06-CONFIGURATION_FILE.md), so the preview looks the
 same as when you open the model in f3d. The output resolution follows Yazi's `max_width`/`max_height`.
 
 ### Headless
