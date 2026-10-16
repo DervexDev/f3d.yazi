@@ -23,13 +23,13 @@ A [Yazi](https://github.com/sxyazi/yazi) previewer for FBX models (and any other
 ## Installation
 
 ```sh
-ya pkg add <owner>/f3d.yazi
+ya pkg add DervexDev/f3d.yazi
 ```
 
 Or clone it manually:
 
 ```sh
-git clone https://github.com/<owner>/f3d.yazi ~/.config/yazi/plugins/f3d.yazi
+git clone https://github.com/DervexDev/f3d.yazi ~/.config/yazi/plugins/f3d.yazi
 ```
 
 ## Usage
