@@ -37,17 +37,21 @@ git clone https://github.com/DervexDev/f3d.yazi ~/.config/yazi/plugins/f3d.yazi
 Add to `~/.config/yazi/yazi.toml`:
 
 ```toml
-[[plugin.prepend_preloaders]]
-url = "*.fbx"
-run = "f3d"
+[plugin]
+prepend_preloaders = [
+    { url = "*.{3mf,fbx,obj,pts,ply,stl,step,stp}", run = "f3d" },
+]
 
-[[plugin.prepend_previewers]]
-url = "*.fbx"
-run = "f3d"
+prepend_previewers = [
+    { url = "*.{3mf,fbx,obj,pts,ply,stl,step,stp}", run = "f3d" },
+]
 ```
 
-Patterns are case-insensitive, so this also matches `.FBX`. To preview other formats f3d can open, add more
-patterns, e.g. `url = "*.{fbx,glb,gltf,obj,stl,ply,3ds,dae}"`.
+Patterns are case-insensitive, so this also matches `.FBX`. Add or remove extensions to match the formats your
+f3d build can open.
+
+STEP files (`.step`, `.stp`) need f3d's `occt` plugin. f3d 3.x loads it automatically; on f3d 2.x, use
+`run = "f3d --plugins=assimp,occt"`.
 
 ### Options
 
