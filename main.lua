@@ -39,7 +39,7 @@ local function config(job)
 		dir = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") or "") .. "/.config") .. "/yazi"
 	end
 
-	local path = Url(dir):join("plugins/f3d.yazi/f3d.json")
+	local path = Url(dir):join("plugins/f3d.yazi/assets/f3d.json")
 	return stat(path) and tostring(path) or nil
 end
 

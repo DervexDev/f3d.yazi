@@ -161,17 +161,26 @@ The output resolution follows Yazi's `max_width`/`max_height`.
 
 ## Appearance
 
-All visual settings live in the plugin's own f3d config, [`f3d.json`](f3d.json), which previews use instead of your
-regular f3d config. That keeps overlays meant for the f3d window (file name, progress bars, …) out of the preview.
+All visual settings live in the plugin's own f3d config, [`assets/f3d.json`](assets/f3d.json), which previews use
+instead of your regular f3d config. That keeps overlays meant for the f3d window (file name, progress bars, …) out of
+the preview.
 By default it renders on a transparent background with ambient HDRI lighting, tone mapping and anti-aliasing. The
 axes widget (`axis`), ground grid (`grid`) and skeleton display (`armature`) are listed too, turned off, so they're
 easy to switch on.
 
-To customize it, copy `f3d.json` to f3d's config directory (`~/.config/f3d/` on Linux,
-`~/Library/Application Support/f3d/` on macOS, `%APPDATA%\f3d\` on Windows) under a new name, e.g. `yazi.json`, edit
-it with any [f3d option](https://github.com/f3d-app/f3d/blob/master/doc/user/03-OPTIONS.md), and point the plugin at
-it with `run = "f3d --config=yazi"`. The camera position is always set by the plugin, so camera options in the file
-are ignored.
+To customize it, copy it to f3d's config directory (`~/.config/f3d/` on Linux,
+`~/Library/Application Support/f3d/` on macOS, `%APPDATA%\f3d\` on Windows) under a new name, e.g. `yazi.json`.
+`ya pkg` installs plugin files read-only, so make the copy writable. On Linux:
+
+```sh
+mkdir -p ~/.config/f3d
+cp ~/.config/yazi/plugins/f3d.yazi/assets/f3d.json ~/.config/f3d/yazi.json
+chmod u+w ~/.config/f3d/yazi.json
+```
+
+Then edit it with any [f3d option](https://github.com/f3d-app/f3d/blob/master/doc/user/03-OPTIONS.md), and point
+the plugin at it with `run = "f3d --config=yazi"`. The camera position is always set by the plugin, so camera options
+in the file are ignored.
 
 > [!WARNING]
 > Rendered images are cached by file and camera position, so changes to the config or to the plugin options don't
