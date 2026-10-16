@@ -5,8 +5,8 @@ glTF/GLB, FBX, OBJ, STL, PLY, USD, 3MF, Collada, STEP/IGES and every other 3D fo
 from meshes and CAD files to point clouds, Gaussian splats and volumes. See [Usage](#usage) for the full list.
 
 - Renders a thumbnail of the model into Yazi's preview cache, so it is only rendered once.
-- Orbit the camera around the model with Yazi's preview-scroll keys, <kbd>Shift</kbd>+<kbd>J</kbd> and
-  <kbd>Shift</kbd>+<kbd>K</kbd> by default. See [Keybindings](#keybindings).
+- Orbit the camera around the model with Yazi's preview-scroll keys (<kbd>J</kbd>/<kbd>K</kbd> by default),
+  and zoom in and out. See [Keybindings](#keybindings).
 - Works as a preloader too, so the image can be rendered before you hover the file.
 
 ## Requirements
@@ -84,16 +84,18 @@ f3d 3.x loads all of its plugins automatically. On f3d 2.x, only `assimp` is loa
 
 ### Keybindings
 
-No keymap changes are needed. The plugin uses Yazi's built-in `seek` action, which scrolls the preview. Each
-press orbits the camera by one step (`--step`, 45° by default) and wraps around after a full turn:
+#### Orbit
 
-| Key                              | Action                       |
-| -------------------------------- | ---------------------------- |
-| <kbd>Shift</kbd>+<kbd>J</kbd>    | Orbit forward (`seek 5`)     |
-| <kbd>Shift</kbd>+<kbd>K</kbd>    | Orbit backward (`seek -5`)   |
+Orbiting uses Yazi's built-in `seek` action, so it works without any keymap changes. Each press orbits the camera
+around the model's vertical axis by one step (`--step`, 45° by default) and wraps around after a full turn:
 
-Plain <kbd>j</kbd>/<kbd>k</kbd> move the file cursor, not the preview. To orbit with other keys, bind them to
-`seek` in `~/.config/yazi/keymap.toml`. Only the direction matters, not the number:
+| Key          | Action                     |
+| ------------ | -------------------------- |
+| <kbd>J</kbd> | Orbit forward (`seek 5`)   |
+| <kbd>K</kbd> | Orbit backward (`seek -5`) |
+
+To orbit with other keys, bind them to `seek` in `~/.config/yazi/keymap.toml`. Only the direction matters, not the
+number. These keys scroll other previews too (text, PDFs, videos), the same as <kbd>J</kbd>/<kbd>K</kbd>:
 
 ```toml
 [mgr]
@@ -103,25 +105,40 @@ prepend_keymap = [
 ]
 ```
 
-Those keys then scroll other previews too (text, PDFs, videos), the same as <kbd>J</kbd>/<kbd>K</kbd>.
+#### Zoom
+
+Zooming needs keybindings, and f3d 3.x. Add to `~/.config/yazi/keymap.toml`:
+
+```toml
+[mgr]
+prepend_keymap = [
+    { on = "+", run = "plugin f3d 1",  desc = "Zoom in hovered file" },
+    { on = "-", run = "plugin f3d -1", desc = "Zoom out hovered file" },
+]
+```
+
+On any file that isn't previewed by this plugin, the keys run [zoom.yazi](https://github.com/yazi-rs/plugins/tree/main/zoom.yazi)
+instead (`plugin zoom 1` / `plugin zoom -1`), so the same keys zoom both images and 3D models. If you use zoom.yazi,
+replace its keybindings with these.
 
 ### Options
 
-Options are passed as arguments in `run`, e.g. `run = "f3d --step=30 --elevation=20 --transparent"`.
+Options are passed as arguments in `run`, e.g. `run = "f3d --step=30 --elevation=30 --transparent"`.
 Use the same arguments for the preloader and the previewer, otherwise they produce different images.
 
 | Option          | Default  | Description                                                                         |
 | --------------- | -------- | ----------------------------------------------------------------------------------- |
-| `--azimuth=N`   | `0`      | Starting camera azimuth angle, in degrees.                                          |
-| `--elevation=N` | `0`      | Camera elevation angle, in degrees.                                                 |
+| `--azimuth=N`   | `0`      | Starting camera angle around the up axis, in degrees. `0` is f3d's default view.    |
+| `--elevation=N` | `19.47`  | Camera angle above the horizon, in degrees. The default matches f3d's default view. |
+| `--up=X`        | `+Y`     | World up axis: `+Y`, `-Y`, `+Z`, … (`f3d --up`). The camera orbits around it.       |
 | `--step=N`      | `45`     | Degrees the camera orbits per scroll. `0` disables orbiting.                        |
 | `--transparent` | off      | Render without a background (`f3d --no-background`).                                |
 | `--plugins=X`   | `assimp` | f3d plugins to load (`--load-plugins`). Comma separated.                            |
 | `--backend=X`   | f3d auto | f3d rendering backend, e.g. `egl` or `osmesa` (f3d 3.x only). See [Headless](#headless). |
 
-Anything else (colors, lighting, HDRI, tone mapping, …) is read from your regular
-[f3d configuration file](https://github.com/f3d-app/f3d/blob/master/doc/user/06-CONFIGURATION_FILE.md), so the preview looks the
-same as when you open the model in f3d. The output resolution follows Yazi's `max_width`/`max_height`.
+The camera position is set by these options. Anything else (colors, lighting, HDRI, grid, tone mapping, …) is read
+from your regular [f3d configuration file](https://github.com/f3d-app/f3d/blob/master/doc/user/06-CONFIGURATION_FILE.md),
+so the preview looks the same as when you open the model in f3d. The output resolution follows Yazi's `max_width`/`max_height`.
 
 ### Headless
 
