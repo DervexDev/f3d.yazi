@@ -9,6 +9,10 @@ local stat = fs.stat or fs.cha
 local DEFAULT_ELEVATION = math.deg(math.atan(0.5 / math.sqrt(2)))
 
 local ZOOM_MIN, ZOOM_MAX = -5, 10
+-- Elevation relative to the default view, in 15-degree increments.
+-- -7..+4 gives about -85.5..+79.5 degrees at the default elevation.
+local PITCH_MIN, PITCH_MAX, PITCH_STEP = -7, 4, 15
+local PITCH_SLOTS = 2 * math.max(-PITCH_MIN, PITCH_MAX) + 1
 
 local function num(v, default) return tonumber(v) or default end
 
@@ -49,22 +53,32 @@ local function positions(job)
 	return step > 0 and math.max(1, math.floor(360 / step)) or 1
 end
 
--- The preview's `skip` holds both the orbit position and the zoom level: `zoom * positions + orbit`.
--- The zoom level is zigzag-encoded (0, 1, -1, 2, -2, …) so that a `skip` of 0 is the default view.
-local function encode(orbit, zoom, n)
-	return (zoom > 0 and zoom * 2 - 1 or -zoom * 2) * n + orbit
+-- Encode azimuth, elevation, and zoom in one nonnegative `skip` value.
+-- Zero remains the default view; each viewpoint has a distinct cache key.
+local function zigzag(value)
+	return value > 0 and value * 2 - 1 or -value * 2
+end
+
+local function unzigzag(value)
+	return value % 2 == 1 and (value + 1) // 2 or -(value // 2)
+end
+
+local function encode(orbit, pitch, zoom, n)
+	return (zigzag(zoom) * PITCH_SLOTS + zigzag(pitch)) * n + orbit
 end
 
 local function decode(skip, n)
-	local z = skip // n
-	return skip % n, z % 2 == 1 and (z + 1) // 2 or -(z // 2)
+	local orbit, rest = skip % n, skip // n
+	local pitch = unzigzag(rest % PITCH_SLOTS)
+	local zoom = unzigzag(rest // PITCH_SLOTS)
+	return orbit, pitch, zoom
 end
 
 -- Camera direction for the given orbit position, rotating around the world's up axis so the horizon stays level.
 -- f3d's own `--camera-azimuth-angle` rotates around the camera's view-up instead, which rolls an elevated camera.
-local function direction(job, orbit)
+local function direction(job, orbit, pitch)
 	local a = math.rad(num(job.args.azimuth, 0) + orbit * num(job.args.step, 45))
-	local e = math.rad(clamp(num(job.args.elevation, DEFAULT_ELEVATION), -89, 89))
+	local e = math.rad(clamp(num(job.args.elevation, DEFAULT_ELEVATION) + pitch * PITCH_STEP, -89, 89))
 
 	local up = (job.args.up or "+Y"):upper()
 	local axis = ({ X = 1, Y = 2, Z = 3 })[up:sub(-1)] or 2
@@ -80,18 +94,24 @@ end
 -- `seek` and `entry` don't receive the `run` arguments, so `peek` shares what they need
 local share = ya.sync(function(st, url, n) st.url, st.positions = url, n end)
 
-local zoom = ya.sync(function(st, delta)
-	-- `cx.active` was renamed to `cx.tab` after Yazi 26.9.1
+local adjust = ya.sync(function(st, axis, delta)
 	local tab = cx.tab or cx.active
 	local h = tab.current.hovered
 	if not h or tostring(h.url) ~= st.url then
 		return false
 	end
 
-	local orbit, level = decode(tab.preview.skip, st.positions)
-	local new = clamp(level + delta, ZOOM_MIN, ZOOM_MAX)
-	if new ~= level then
-		ya.emit("peek", { encode(orbit, new, st.positions), only_if = h.url })
+	local orbit, pitch, level = decode(tab.preview.skip, st.positions)
+	if axis == "pitch" then
+		local new = clamp(pitch + delta, PITCH_MIN, PITCH_MAX)
+		if new ~= pitch then
+			ya.emit("peek", { encode(orbit, new, level, st.positions), only_if = h.url })
+		end
+	else
+		local new = clamp(level + delta, ZOOM_MIN, ZOOM_MAX)
+		if new ~= level then
+			ya.emit("peek", { encode(orbit, pitch, new, st.positions), only_if = h.url })
+		end
 	end
 	return true
 end)
@@ -207,9 +227,11 @@ function M:peek(job)
 	local n = positions(job)
 	share(tostring(job.file.url), n)
 
-	local orbit, level = decode(job.skip, n)
-	if level ~= clamp(level, ZOOM_MIN, ZOOM_MAX) then
-		return ya.emit("peek", { encode(orbit, clamp(level, ZOOM_MIN, ZOOM_MAX), n), only_if = job.file.url })
+	local orbit, pitch, level = decode(job.skip, n)
+	local bounded_pitch = clamp(pitch, PITCH_MIN, PITCH_MAX)
+	local bounded_level = clamp(level, ZOOM_MIN, ZOOM_MAX)
+	if bounded_pitch ~= pitch or bounded_level ~= level then
+		return ya.emit("peek", { encode(orbit, bounded_pitch, bounded_level, n), only_if = job.file.url })
 	end
 
 	local ok, err = self:preload(job)
@@ -254,10 +276,10 @@ function M:seek(job)
 		return
 	end
 
-	local orbit, level = decode(tab.preview.skip, n)
+	local orbit, pitch, level = decode(tab.preview.skip, n)
 	local units = job.units > 0 and 1 or -1
 	ya.emit("peek", {
-		encode((orbit + units) % n, level, n),
+		encode((orbit + units) % n, pitch, level, n),
 		only_if = job.file.url,
 		tab = job.tab,
 	})
@@ -266,8 +288,14 @@ end
 -- `plugin f3d 1` / `plugin f3d -1` zooms the hovered model in or out.
 -- Any other file is handed over to zoom.yazi, so the same keys can zoom images too.
 function M:entry(job)
-	local delta = num(job.args[1], 0)
-	if not zoom(delta) then
+	local action = job.args[1]
+	if action == "pitch-up" or action == "pitch-down" then
+		adjust("pitch", action == "pitch-up" and 1 or -1)
+		return
+	end
+
+	local delta = num(action, 0)
+	if not adjust("zoom", delta) then
 		ya.emit("plugin", { "zoom", tostring(delta) })
 	end
 end
@@ -283,7 +311,7 @@ function M:preload(job)
 		return true
 	end
 
-	local orbit, level = decode(job.skip, positions(job))
+	local orbit, pitch, level = decode(job.skip, positions(job))
 	-- The preloader and the previewer can render the same file at the same time, so give each run its own output
 	local tmp = Url(string.format("%s.%d%04d.png", cache, os.time(), math.random(0, 9999)))
 
@@ -294,7 +322,7 @@ function M:preload(job)
 		:arg {
 			"--load-plugins=" .. (job.args.plugins or "assimp"),
 			"--resolution=" .. rt.preview.max_width .. "," .. rt.preview.max_height,
-			"--camera-direction=" .. direction(job, orbit),
+			"--camera-direction=" .. direction(job, orbit, pitch),
 			"--output=" .. tostring(tmp),
 		}
 
