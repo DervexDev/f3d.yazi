@@ -124,6 +124,19 @@ prepend_keymap = [
 ]
 ```
 
+### Vertical camera orbit (pitch)
+
+Tilt the camera up/down in 15-degree increments while retaining the current
+horizontal orbit and zoom. Add these to `[mgr] prepend_keymap` in `keymap.toml`:
+
+```toml
+{ on = "<A-j>", run = "plugin f3d pitch-down", desc = "Tilt 3D camera down" },
+{ on = "<A-k>", run = "plugin f3d pitch-up",   desc = "Tilt 3D camera up" },
+```
+
+Like horizontal orbit, each distinct viewpoint is rendered once and cached.
+The pitch is limited to avoid passing the camera poles.
+
 ### Zoom
 
 Zooming needs keybindings, and f3d 3.x. Add to `~/.config/yazi/keymap.toml`:
