@@ -12,6 +12,11 @@ local ZOOM_MIN, ZOOM_MAX = -5, 10
 
 local function num(v, default) return tonumber(v) or default end
 
+-- F3D always expects a dot as the decimal separator, regardless of LC_NUMERIC.
+local function format_decimal(format, value)
+	return (string.format(format, value):gsub(",", "."))
+end
+
 local function clamp(v, min, max) return math.max(min, math.min(max, v)) end
 
 -- `--flag` is `true`, `--flag=false` (or `no`, `off`, `0`) is `false`
@@ -74,7 +79,11 @@ local function direction(job, orbit)
 	dir[axis] = -sign * math.sin(e)
 	dir[axis % 3 + 1] = math.cos(e) * (math.sin(a) - math.cos(a)) / math.sqrt(2)
 	dir[(axis + 1) % 3 + 1] = math.cos(e) * -(math.cos(a) + math.sin(a)) / math.sqrt(2)
-	return string.format("%.6f,%.6f,%.6f", dir[1], dir[2], dir[3])
+	return table.concat({
+		format_decimal("%.6f", dir[1]),
+		format_decimal("%.6f", dir[2]),
+		format_decimal("%.6f", dir[3]),
+	}, ",")
 end
 
 -- `seek` and `entry` don't receive the `run` arguments, so `peek` shares what they need
@@ -303,7 +312,7 @@ function M:preload(job)
 		cmd:arg("--config=" .. cfg)
 	end
 	if level ~= 0 then
-		cmd:arg(string.format("--camera-zoom-factor=%.4f", 0.9 * 1.2 ^ level))
+		cmd:arg("--camera-zoom-factor=" .. format_decimal("%.4f", 0.9 * 1.2 ^ level))
 	end
 	if job.args.up then
 		cmd:arg("--up=" .. job.args.up)
